@@ -25,7 +25,13 @@ class SessionManager:
         self._credentials = None
 
     def load_credentials(self):
-        """Load credentials from config file"""
+        """Load credentials from config file
+        
+        Security Note:
+        - Credentials are loaded from config.json which should NEVER be committed to git
+        - The config file contains sensitive information: username, password, and 2FA secret
+        - Ensure config.json has restrictive file permissions (chmod 600 on Linux/Mac)
+        """
         import json
 
         with open(self.config_path, 'r') as f:

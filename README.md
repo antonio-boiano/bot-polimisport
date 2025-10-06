@@ -28,6 +28,8 @@ Automated Telegram bot for managing Polimisport (PoliMi sport center) course boo
 
 - Single-user authentication with Telegram user ID verification
 - PoliMi 2FA support with TOTP (Time-based One-Time Password)
+- Credentials stored in local config file (never committed to git)
+- See [SECURITY.md](SECURITY.md) for security audit and best practices
 
 
 
@@ -61,7 +63,13 @@ This installs:
 
 ### 3. Configure
 
-Create `config.json` in the root directory:
+Create `config.json` in the root directory (you can copy from `config.example.json`):
+
+```bash
+cp config.example.json config.json
+```
+
+Then edit `config.json` with your actual credentials:
 
 ```json
 {
@@ -73,6 +81,8 @@ Create `config.json` in the root directory:
     "db_path": "polimisport.db"
 }
 ```
+
+**⚠️ Security Warning**: Never commit `config.json` to git! It contains sensitive credentials.
 
 #### 📝 Configuration Guide
 
@@ -302,6 +312,47 @@ Deploy to services like:
 - Check `/confirmations` regularly if using confirmation mode
 - Keep the bot running continuously for automated features
 - Monitor disk space - database and logs can grow over time
+
+## 🔒 Security Best Practices
+
+### Protecting Your Credentials
+
+**⚠️ IMPORTANT**: Your `config.json` contains sensitive information:
+- PoliMi password
+- 2FA secret (in the otpauth_url)
+- Telegram bot token
+
+**Never commit config.json to git!** It's already in `.gitignore`, but be careful not to override this.
+
+### Recommended Security Measures
+
+1. **File Permissions** (Linux/Mac)
+   ```bash
+   chmod 600 config.json  # Make file readable/writable only by you
+   ```
+
+2. **Use the Example Template**
+   - Copy `config.example.json` to `config.json`
+   - Fill in your actual credentials
+   - Never edit `config.example.json` with real values
+
+3. **Credential Rotation**
+   - If you suspect your config.json was exposed:
+     - Change your PoliMi password immediately
+     - Reset 2FA and update the otpauth_url
+     - Revoke Telegram bot token via @BotFather and create a new bot
+
+4. **Deployment Security**
+   - On shared systems, ensure config.json has restrictive permissions
+   - Consider using environment variables for production deployments
+   - Keep backups of config.json secure (they contain secrets too)
+
+5. **Monitor for Unauthorized Access**
+   - Check for unexpected bookings in your PoliMi account
+   - Watch for unknown Telegram messages from your bot
+   - Review bot logs regularly
+
+For a complete security audit and detailed recommendations, see [SECURITY.md](SECURITY.md).
 
 ## 🤝 Contributing
 

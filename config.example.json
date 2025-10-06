@@ -1,0 +1,8 @@
+{
+    "username": "your_polimi_username",
+    "password": "your_polimi_password",
+    "otpauth_url": "otpauth://totp/PoliMi:username?secret=YOUR_SECRET&issuer=PoliMi",
+    "telegram_bot_token": "your_telegram_bot_token",
+    "telegram_user_id": 123456789,
+    "db_path": "polimisport.db"
+}

@@ -53,7 +53,8 @@ if __name__ == '__main__':
     # Test OTP generation
     logging.basicConfig(level=logging.INFO)
 
-    # Test URL (fake secret for testing)
+    # Test URL (fake secret for testing - NOT a real secret)
+    # This is the well-known test secret from the TOTP RFC specification
     test_url = "otpauth://totp/Test?secret=JBSWY3DPEHPK3PXP&issuer=Test"
 
     print("Testing OTP generation...")
