@@ -43,7 +43,7 @@ The `docker-compose.yml` file automatically mounts:
 
 1. **config.json** (required): Your credentials file
    - Source: `./config.json`
-   - Destination: `/config.json` (read-only)
+   - Destination: `app/config.json` (read-only)
    - **Important**: This file must exist in the project root before starting
 
 2. **Project directory**: For database persistence
@@ -64,15 +64,15 @@ docker build -t polimisport-bot .
 docker run -d \
   --name polimisport-bot \
   --restart unless-stopped \
-  -v $(pwd)/config.json:/config.json:ro \
+  -v $(pwd)/config.json:/app/config.json:ro \
   -v $(pwd):/app \
   -e TZ=Europe/Rome \
-  polimisport-bot
+  anboiano/polimisport-bot
 ```
 
 ### Volume Explanation
 
-- `-v $(pwd)/config.json:/config.json:ro`: Mounts your config file as read-only
+- `-v $(pwd)/config.json:config.json:ro`: Mounts your config file as read-only
 - `-v $(pwd):/app`: Mounts the project directory so the database persists automatically
 
 ## Common Commands
@@ -100,7 +100,7 @@ docker-compose up -d --build
 
 If you see an error about missing config file:
 ```
-FileNotFoundError: [Errno 2] No such file or directory: '../config.json'
+FileNotFoundError: [Errno 2] No such file or directory: 'config.json'
 ```
 
 Ensure that:

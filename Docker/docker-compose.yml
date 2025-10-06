@@ -7,7 +7,7 @@ services:
     restart: unless-stopped
     volumes:
       # Mount config file (required)
-      - ./config.json:/config.json:ro
+      - ./config.json:/app/config.json:ro
       # Mount current directory for database persistence
       # The database will be created automatically on first run
       - .:/app

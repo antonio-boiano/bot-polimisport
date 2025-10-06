@@ -127,7 +127,7 @@ if __name__ == '__main__':
         print("=== Session Manager Test ===\n")
 
         # Check config exists
-        config_path = '../config.json'
+        config_path = 'config.json'
         if not Path(config_path).exists():
             print(f"❌ Config file not found: {config_path}")
             print("Please create config.json with:")

@@ -41,7 +41,7 @@ logger = logging.getLogger(__name__)
 class PolimisportBot:
     """Main bot controller"""
 
-    def __init__(self, config_path: str = '../config.json'):
+    def __init__(self, config_path: str = 'config.json'):
         self.config = self._load_config(config_path)
         self.db = Database(self.config.get('db_path', 'polimisport.db'))
         self.authorized_user = self.config['telegram_user_id']
@@ -68,7 +68,7 @@ class PolimisportBot:
     async def _ensure_session(self):
         """Ensure browser session is active"""
         if self.session is None:
-            self.session = SessionManager(self.config.get('config_path', '../config.json'))
+            self.session = SessionManager(self.config.get('config_path', 'config.json'))
             await self.session.start()
 
             if not await self.session.login():
@@ -1032,7 +1032,7 @@ END:VCALENDAR"""
                 # Ensure session for executor
                 if not self.booking_executor.session_manager:
                     self.booking_executor.session_manager = SessionManager(
-                        self.config.get('config_path', '../config.json')
+                        self.config.get('config_path', 'config.json')
                     )
                     await self.booking_executor.session_manager.start()
                     await self.booking_executor.session_manager.login()
