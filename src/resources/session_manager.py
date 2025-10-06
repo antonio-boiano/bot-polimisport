@@ -45,7 +45,15 @@ class SessionManager:
 
         logger.info("Starting browser...")
         self.playwright = await async_playwright().start()
-        self.browser = await self.playwright.chromium.launch(headless=True) # To debug browser put on True IMPORTANT DEBUG
+        self.browser = await self.playwright.chromium.launch(
+            headless=True,  # To debug browser put on False IMPORTANT DEBUG
+            args=[
+                '--disable-dev-shm-usage',  # Overcome limited resource problems
+                '--no-sandbox',  # Required for containers
+                '--disable-setuid-sandbox',
+                '--disable-blink-features=AutomationControlled'
+            ]
+        )
         self.page = await self.browser.new_page()
         logger.info("Browser started")
 
@@ -73,7 +81,11 @@ class SessionManager:
             logger.info("Starting login...")
 
             # Navigate to login page
-            await self.page.goto("https://ecomm.sportrick.com/sportpolimi/Account/Login?returnUrl=%\2Fsportpolimi%\2F")
+            await self.page.goto(
+                "https://ecomm.sportrick.com/sportpolimi/Account/Login?returnUrl=%2Fsportpolimi%2F",
+                wait_until="domcontentloaded",  # Don't wait for all resources
+                timeout=2000  # Increase timeout to 60s
+            )
             # await self.page.get_by_role('link', name='Area Riservata').click()
             await self.page.get_by_role('button', name='Accedi al tuo account').click()
 

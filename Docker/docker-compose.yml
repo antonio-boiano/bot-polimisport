@@ -13,6 +13,8 @@ services:
       - .:/app
     environment:
       - TZ=Europe/Rome
+    # Increase shared memory for Chromium
+    shm_size: '2gb'
     # Uncomment for debugging
     # stdin_open: true
     # tty: true
