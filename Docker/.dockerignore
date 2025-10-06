@@ -1,0 +1,57 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+.venv/
+venv/
+ENV/
+env/
+
+# Git
+.git/
+.github/
+.gitignore
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# Docker
+Dockerfile
+docker-compose.yml
+.dockerignore
+Docker/
+
+# Documentation
+README.md
+*.md
+
+# Database (will be mounted)
+*.db
+*.sqlite
+*.sqlite3
+
+# Config (will be mounted)
+config.json
+
+# Logs
+*.log
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Node
+node_modules/
+package.json
+package-lock.json
+
+# Temporary files
+*.tmp
+tmp/
+temp/
