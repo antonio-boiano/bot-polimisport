@@ -1,66 +1,67 @@
 # 🏃 Polimisport Bot
 
-Professional Telegram bot for managing Polimisport (PoliMi sport center) course bookings and schedules.
+Automated Telegram bot for managing Polimisport (PoliMi sport center) course bookings and schedules. Never miss your favorite class again!
 
 ## 📋 Features
 
-### Core Functionality
-- **🔐 Secure Authentication** - Automatic login with OTP support
-- **📚 Course Management** - View and track all available courses
-- **💪 Fit Center Integration** - Access fit center slots
-- **📅 Booking Management** - View, create, and cancel bookings
-- **🔄 Auto-sync** - Automatic database refresh on login
-- **🤖 Telegram Interface** - Easy-to-use bot commands and menus
+### 🎯 Booking Modes
 
-### Technical Features
-- **Modular Architecture** - Clean separation of concerns
-- **Async/Await** - Non-blocking operations with Playwright
-- **SQLite Database** - Efficient local storage
-- **Self-testing Modules** - Each module can be tested independently
-- **Comprehensive Logging** - Debug-friendly with detailed logs
+- **⚡ Instant Booking** - Book available courses immediately (within 2 days)
+- **📅 Scheduled Booking** - Automatically books at midnight 2 days before the course
+- **🔄 Recurring Booking** - Automatically books the same course every week with two modes:
+  - **With Confirmation**: Receive a notification 5 hours before to confirm/cancel
+  - **Automatic**: Books automatically without confirmation
 
-## 🏗️ Project Structure
+### 📚 Course Management
 
-```
-bot-polimisport/
-├── main.py                 # Main entry point - Telegram bot
-├── config.json             # Configuration (credentials, tokens)
-├── requirements.txt        # Python dependencies
-│
-├── src/
-│   ├── utils/             # Low-level utilities
-│   │   ├── database.py    # SQLite operations
-│   │   └── otp.py         # OTP generation
-│   │
-│   ├── resources/         # Website interaction
-│   │   ├── session_manager.py  # Browser & login
-│   │   └── web_scraper.py      # HTML parsing & scraping
-│   │
-│   └── handlers/          # Business logic
-│       ├── course_handler.py   # Course operations
-│       └── booking_handler.py  # Booking operations
-│
-├── scripts/               # Interactive test scripts
-│   ├── test_database.py   # Test database ops
-│   ├── test_scraper.py    # Test HTML parsing
-│   ├── test_login.py      # Test session & login
-│   └── test_full_flow.py  # End-to-end test
-│
-└── old_files/            # Previous implementations (backup)
-```
+- **View Courses** - Browse all available courses and Fit Center slots by day
+- **My Bookings** - View all your active bookings with quick cancel buttons
+- **Database Sync** - Refresh course catalog and sync existing bookings from website
+
+### 📆 Scheduling Features
+
+- **Manage Scheduled Bookings** - View and cancel upcoming scheduled bookings
+- **Manage Recurring Bookings** - Toggle on/off or delete recurring bookings
+- **Calendar Export** - Receive .ics calendar files for successful bookings
+
+### 🔐 Security
+
+- Single-user authentication with Telegram user ID verification
+- PoliMi 2FA support with TOTP (Time-based One-Time Password)
+
+
 
 ## 🚀 Quick Start
 
-### 1. Install Dependencies
+### Prerequisites
+
+- Python 3.8 or higher
+- PoliMi account with 2FA enabled
+- Telegram account
+
+### 1. Clone the Repository
+
+```bash
+git clone https://github.com/yourusername/bot-polimisport.git
+cd bot-polimisport
+```
+
+### 2. Install Dependencies
 
 ```bash
 pip install -r requirements.txt
 playwright install chromium
 ```
 
-### 2. Configure
+This installs:
+- `python-telegram-bot` - Telegram bot framework
+- `playwright` - Browser automation for web scraping
+- `pyotp` - TOTP generation for 2FA
+- `apscheduler` - Task scheduling for automated bookings
 
-Create `config.json`:
+### 3. Configure
+
+Create `config.json` in the root directory:
 
 ```json
 {
@@ -73,196 +74,255 @@ Create `config.json`:
 }
 ```
 
+#### 📝 Configuration Guide
+
+**How to get your PoliMi credentials:**
+- Use your PoliMi username (codice persona) and password
+
 **How to get OTP URL:**
-1. Set up 2FA on PoliMi services
-2. When scanning QR code, extract the `otpauth://` URL
-3. Or use authenticator apps that show the secret
+1. Go to PoliMi services and set up 2FA if not already enabled
+2. When adding a new authenticator, you'll see a QR code
+3. Most QR codes contain an `otpauth://` URL - you can:
+   - Use a QR scanner app to extract the URL
+   - Use an authenticator app that shows the secret (e.g., Aegis, Authy)
+   - Manually create the URL: `otpauth://totp/PoliMi:username?secret=YOUR_SECRET&issuer=PoliMi`
 
 **How to get Telegram bot token:**
-1. Message [@BotFather](https://t.me/botfather) on Telegram
-2. Create new bot with `/newbot`
-3. Copy the token provided
+1. Open Telegram and message [@BotFather](https://t.me/botfather)
+2. Send `/newbot` command
+3. Follow prompts to choose a name and username for your bot
+4. Copy the token provided (format: `123456:ABC-DEF1234ghIkl-zyx57W2v1u123ew11`)
 
 **How to get your Telegram user ID:**
 1. Message [@userinfobot](https://t.me/userinfobot) on Telegram
-2. Copy the ID number
+2. Copy your numeric ID (e.g., `123456789`)
 
-### 3. Run the Bot
+### 4. Run the Bot
 
 ```bash
 python main.py
 ```
 
-### 4. Use the Bot
-
-Open Telegram and message your bot:
-- `/start` - Main menu
-- `/refresh` - Update database
-- `/bookings` - View your bookings
-
-## 🧪 Testing
-
-Each module is self-testable. Run individual tests:
-
-### Test Database
-```bash
-python scripts/test_database.py
+The bot will start and display:
+```
+Starting Polimisport Bot...
+Setting up scheduler...
+Scheduler setup complete!
+Bot started with scheduler!
 ```
 
-### Test Web Scraper (HTML parsing)
-```bash
-python scripts/test_scraper.py
-```
+### 5. Use the Bot
 
-### Test Login & Session
-```bash
-python scripts/test_login.py
-# Browser will open - verify login works
-```
+Open Telegram and search for your bot by the username you created. Start chatting:
 
-### Test Full Flow (End-to-End)
-```bash
-python scripts/test_full_flow.py
-# Complete workflow: login → scrape → store
-```
+#### 🎮 Available Commands
 
-### Test Individual Modules
-Each module has a test block:
+- `/start` - Show main menu with all options
+- `/refresh` - Update course database and sync bookings
+- `/bookings` - View your active bookings
+- `/book` - Start booking process
+- `/scheduled` - View scheduled bookings
+- `/periodic` - View recurring bookings
+- `/confirmations` - Check pending booking confirmations
 
-```bash
-python -m src.utils.database
-python -m src.utils.otp
-python -m src.resources.web_scraper
-python -m src.resources.session_manager
-python -m src.handlers.course_handler
-python -m src.handlers.booking_handler
-```
+#### 🖱️ Interactive Menu
+
+The bot uses inline buttons for easy navigation:
+1. **📚 Visualizza Corsi** - Browse courses and Fit Center by day
+2. **🎯 Prenota corso** - Start booking flow with mode selection
+3. **📅 Le mie prenotazioni** - View and cancel bookings
+4. **📆 Gestisci pianificazione** - Manage scheduled/recurring bookings
+5. **🔄 Aggiorna database** - Refresh available courses
+
+## 💡 How It Works
+
+### Booking Flow Example
+
+1. **First Time Setup**
+   - Run `/refresh` to scrape all available courses from Polimisport website
+   - Bot stores courses in local SQLite database
+
+2. **Instant Booking** (courses within 2 days)
+   - Select course → Click "⚡ Prenota subito"
+   - Bot logs into Polimisport and books immediately
+   - Receive .ics calendar file to add to your calendar
+
+3. **Scheduled Booking** (courses 3+ days away)
+   - Select course → Click "📅 Programma prenotazione"
+   - Bot calculates midnight 2 days before course
+   - Automated scheduler executes booking at the right time
+
+4. **Recurring Booking**
+   - Select course → Choose confirmation mode
+   - Bot automatically creates scheduled bookings every week
+   - **With confirmation**: Receive notification 5h before to approve
+   - **Automatic**: Books without asking (auto-cancels 1h before if confirmation required)
+
+### Background Scheduler
+
+The bot runs these automated tasks:
+- **Every 5 minutes**: Check and execute pending scheduled bookings
+- **Midnight (00:00)**: Execute all bookings scheduled for that day
+- **Hourly**: Check for pending confirmations and send notifications
+- **Hourly**: Auto-cancel bookings that weren't confirmed in time
+- **Daily (00:30)**: Process recurring bookings and create next week's schedule
 
 ## 🔧 Architecture
 
 ### Layer 1: Utils (Low-level)
 - `database.py` - SQLite operations with context managers
 - `otp.py` - TOTP generation from otpauth URLs
+- `scheduler.py` - APScheduler configuration and job management
 
 ### Layer 2: Resources (Web Interaction)
-- `session_manager.py` - Browser lifecycle & authentication
-- `web_scraper.py` - HTML parsing & data extraction
+- `session_manager.py` - Playwright browser lifecycle & authentication
+- `web_scraper.py` - HTML parsing & data extraction from Polimisport
 
 ### Layer 3: Handlers (Business Logic)
-- `course_handler.py` - Course refresh & retrieval
-- `booking_handler.py` - Booking operations & sync
+- `course_handler.py` - Course refresh & retrieval operations
+- `booking_handler.py` - Booking creation & cancellation
+- `booking_service.py` - Scheduled & periodic booking management
+- `booking_executor.py` - Automated booking execution engine
 
 ### Layer 4: Interface
-- `main.py` - Telegram bot with commands & callbacks
+- `main.py` - Telegram bot with commands, callbacks & scheduler integration
 
-## 📊 Database Schema
 
-### Courses Table
-```sql
-courses (
-    id INTEGER PRIMARY KEY,
-    name TEXT,
-    location TEXT,
-    day_of_week TEXT,        -- Italian day names
-    time_start TEXT,
-    time_end TEXT,
-    course_type TEXT,
-    instructor TEXT,
-    is_fit_center INTEGER,   -- 0=course, 1=fit center
-    last_updated TIMESTAMP
-)
-```
 
-### Bookings Table
-```sql
-user_bookings (
-    id INTEGER PRIMARY KEY,
-    user_id INTEGER,
-    booking_id TEXT UNIQUE,
-    course_name TEXT,
-    location TEXT,
-    booking_date TEXT,
-    booking_time TEXT,
-    status TEXT,             -- 'active' or 'cancelled'
-    created_at TIMESTAMP,
-    updated_at TIMESTAMP
-)
-```
 
-## 🐛 Debugging
+## 🐛 Troubleshooting
 
-### Enable Debug Logging
-Edit any module and change:
+### Common Issues
+
+**🔴 Bot says "⛔ Non autorizzato"**
+- Your Telegram user ID doesn't match the one in `config.json`
+- Double-check your ID using [@userinfobot](https://t.me/userinfobot)
+- Update `telegram_user_id` in config and restart bot
+
+**🔴 Login fails / Authentication error**
+- Verify username and password are correct in `config.json`
+- Test your OTP URL manually:
+  ```bash
+  python -c "import pyotp; print(pyotp.parse_uri('YOUR_OTPAUTH_URL').now())"
+  ```
+- Ensure 2FA is properly set up on your PoliMi account
+- Check if PoliMi website is accessible
+
+**🔴 No courses found / Database empty**
+- Run `/refresh` command to scrape courses from website
+- Check your internet connection
+- Verify you're logged into the correct PoliMi account
+- If still failing, Polimisport website structure may have changed
+
+**🔴 Bot doesn't respond to commands**
+- Verify bot is running (`python main.py` shows "Bot started")
+- Check `telegram_bot_token` is correct
+- Ensure you're messaging the correct bot
+- Check Python console for error messages
+
+**🔴 Scheduled bookings not executing**
+- Bot must be running continuously for scheduler to work
+- Check logs for scheduler errors
+- Verify system time is correct
+- Database path is writable
+
+**🔴 Playwright/Browser errors**
+- Run `playwright install chromium` again
+- Check sufficient disk space for browser installation
+- Try running with headless=False for debugging (edit `session_manager.py`)
+
+**🔴 Booking fails with "❌ Prenotazione fallita"**
+- Course may be full or no longer available
+- Run `/refresh` to update course availability
+- Check if you already have a booking at that time
+- Verify your PoliMi account is in good standing
+
+### Debug Mode
+
+To see detailed logs, check the console output. The bot logs:
+- INFO: Normal operations (startup, bookings, refresh)
+- ERROR: Failed operations with stack traces
+
+For even more detail, change logging level in `main.py`:
 ```python
 logging.basicConfig(level=logging.DEBUG)
 ```
 
-### Common Issues
+## 📱 Best Practices
 
-**Login fails:**
-- Check username/password in `config.json`
-- Verify OTP URL is correct (try generating code manually)
-- Ensure 2FA is enabled on PoliMi account
+### Running 24/7
 
-**No courses found:**
-- Run `/refresh` command to update database
-- Check if you're logged into the correct account
-- Verify the website structure hasn't changed
+For continuous operation (required for scheduled bookings), consider:
 
-**Bot doesn't respond:**
-- Check `telegram_bot_token` is correct
-- Verify `telegram_user_id` matches your account
-- Check bot is running (`python main.py`)
+**Option 1: Keep Your Computer Running**
+```bash
+python main.py
+```
 
-**Scraping errors:**
-- Website structure may have changed
-- Check browser console in test scripts
-- Verify selectors in `web_scraper.py`
+**Option 2: Run in Background (Linux/Mac)**
+```bash
+nohup python main.py > bot.log 2>&1 &
+```
 
-## 📝 Development
+**Option 3: Use systemd Service (Linux)**
+Create `/etc/systemd/system/polimisport-bot.service`:
+```ini
+[Unit]
+Description=Polimisport Telegram Bot
+After=network.target
 
-### Adding New Features
+[Service]
+Type=simple
+User=yourusername
+WorkingDirectory=/path/to/bot-polimisport
+ExecStart=/usr/bin/python3 main.py
+Restart=always
 
-1. **Low-level functionality** → Add to `src/utils/`
-2. **Website interaction** → Add to `src/resources/`
-3. **Business logic** → Add to `src/handlers/`
-4. **User interface** → Update `main.py`
+[Install]
+WantedBy=multi-user.target
+```
 
-### Testing New Code
+Then:
+```bash
+sudo systemctl enable polimisport-bot
+sudo systemctl start polimisport-bot
+```
 
-1. Add `if __name__ == '__main__'` test block
-2. Create test script in `scripts/`
-3. Run independently before integration
+**Option 4: Cloud Hosting**
+Deploy to services like:
+- DigitalOcean Droplet
+- AWS EC2 (Free tier eligible)
+- Google Cloud Platform
+- Heroku
 
-### Code Style
-- Use type hints for function parameters
-- Add docstrings to all public methods
-- Include logger statements for debugging
-- Keep modules focused and self-contained
+### Tips
 
-## 📚 Dependencies
+- Run `/refresh` weekly to keep course database updated
+- Use recurring bookings with confirmation for flexibility
+- Check `/confirmations` regularly if using confirmation mode
+- Keep the bot running continuously for automated features
+- Monitor disk space - database and logs can grow over time
 
-- **python-telegram-bot** - Telegram bot API
-- **playwright** - Browser automation
-- **beautifulsoup4** - HTML parsing
-- **pyotp** - OTP generation
-- **sqlite3** - Database (built-in)
+## 🤝 Contributing
 
-## 🔒 Security Notes
+Contributions are welcome! Areas for improvement:
+- Support for multiple users
+- Web interface for configuration
+- Notification preferences
+- Booking history and statistics
+- Support for other PoliMi services
 
-- `config.json` contains sensitive data - **never commit to git**
-- Add to `.gitignore`: `config.json`, `*.db`
-- OTP secrets should be stored securely
-- Bot is single-user (authorized via `telegram_user_id`)
+## ⚠️ Disclaimer
+
+This bot is for educational purposes. Use responsibly and in accordance with PoliMi's terms of service. The author is not responsible for any misuse or violations.
 
 ## 📄 License
 
-Personal project for PoliMi students.
+MIT License - feel free to use and modify
 
-## 🙏 Credits
+## 💬 Support
 
-Created for managing Polimisport bookings efficiently.
-
----
-
-**Need help?** Check the test scripts or run modules individually to debug issues.
+For issues or questions:
+- Check the troubleshooting section above
+- Open an issue on GitHub
+- Review the code architecture section for understanding
