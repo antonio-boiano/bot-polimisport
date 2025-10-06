@@ -1,0 +1,148 @@
+═══════════════════════════════════════════════════════════════════
+   POLIMISPORT BOT - SETUP CHECKLIST
+═══════════════════════════════════════════════════════════════════
+
+PRE-FLIGHT CHECKLIST
+────────────────────────────────────────────────────────────────────
+
+[ ] Python 3.8+ installed
+    $ python3 --version
+
+[ ] Dependencies installed
+    $ pip install -r requirements.txt
+    $ playwright install chromium
+
+[ ] Config file ready
+    $ cat config.json
+    - username: Your Polimi code
+    - password: Your password
+    - otpatu: Your OTP URL
+    - telegram.bot_token: From @BotFather
+    - telegram.allowed_user_id: Your user ID (from @userinfobot)
+
+[ ] Tests pass (optional but recommended)
+    $ python test_bot.py
+
+[ ] Bot runs without errors
+    $ python polimisport_bot.py
+    Should see: "🚀 Bot started!"
+
+[ ] Telegram bot responds
+    Send /start to bot
+    Should see menu with buttons
+
+[ ] Refresh works
+    Click "🔄 Aggiorna Dati"
+    Should complete in ~30-60 seconds
+
+[ ] Data displays correctly
+    Click "📅 Orari Corsi"
+    Should see days with course counts
+
+═══════════════════════════════════════════════════════════════════
+   VERIFICATION STEPS
+═══════════════════════════════════════════════════════════════════
+
+1. Check bot is running:
+   $ ps aux | grep polimisport_bot.py
+   Should see one process
+
+2. Check database has data:
+   $ sqlite3 polimisport.db "SELECT COUNT(*) FROM courses"
+   Should show > 0 after first refresh
+
+3. Check database structure:
+   $ sqlite3 polimisport.db ".tables"
+   Should show: courses, user_bookings
+
+4. Test refresh:
+   - Click "🔄 Aggiorna Dati" in bot
+   - Wait for completion message
+   - Click "📅 Orari Corsi"
+   - Should see courses
+
+5. Verify no duplicates:
+   $ sqlite3 polimisport.db "SELECT day_of_week, time_start, COUNT(*) as c FROM courses GROUP BY day_of_week, time_start HAVING c > 1"
+   Should return no rows
+
+═══════════════════════════════════════════════════════════════════
+   COMMON ISSUES & FIXES
+═══════════════════════════════════════════════════════════════════
+
+Issue: "No module named 'telegram'"
+Fix:  pip install python-telegram-bot
+
+Issue: "No module named 'playwright'"
+Fix:  pip install playwright
+      playwright install chromium
+
+Issue: "No module named 'pyotp'"
+Fix:  pip install pyotp
+
+Issue: "Login failed"
+Fix:  Check config.json username, password, OTP URL
+
+Issue: "Bot not responding"
+Fix:  Check bot_token in config.json
+      Verify bot is running (ps aux | grep polimisport)
+
+Issue: "No data shown"
+Fix:  Click "🔄 Aggiorna Dati" to fetch data
+
+Issue: "Database error"
+Fix:  Delete polimisport.db and restart bot
+      (Will recreate automatically)
+
+═══════════════════════════════════════════════════════════════════
+   FILE CHECKLIST
+═══════════════════════════════════════════════════════════════════
+
+Required files:
+  [✓] polimisport_bot.py     - Main bot file
+  [✓] test_bot.py            - Tests
+  [✓] otp_extractor.py       - OTP utility
+  [✓] config.json            - Configuration (create/edit)
+  [✓] requirements.txt       - Dependencies
+
+Documentation:
+  [✓] README.md              - Full docs
+  [✓] QUICKSTART.md          - Quick setup
+  [✓] MIGRATION_SUMMARY.md   - Migration details
+  [✓] FINAL_SUMMARY.txt      - Summary
+  [✓] CHECKLIST.txt          - This file
+
+Auto-generated:
+  [ ] polimisport.db         - Created on first run
+  [ ] __pycache__/           - Python cache (can ignore)
+
+Archived:
+  [✓] old_files/             - Old multi-file version
+
+═══════════════════════════════════════════════════════════════════
+   SUCCESS CRITERIA
+═══════════════════════════════════════════════════════════════════
+
+✅ Bot starts without errors
+✅ Telegram bot responds to /start
+✅ Refresh completes successfully
+✅ Courses display correctly
+✅ Fit center displays correctly
+✅ Bookings display (if you have any)
+✅ No duplicates in database
+✅ Tests pass (optional)
+
+If all above are ✅, you're ready to use the bot!
+
+═══════════════════════════════════════════════════════════════════
+   NEXT ACTIONS
+═══════════════════════════════════════════════════════════════════
+
+After successful setup:
+
+1. Bookmark bot in Telegram
+2. Refresh data regularly (daily or weekly)
+3. Check for new courses/slots
+4. Keep config.json secure (contains credentials)
+5. Enjoy! 🎉
+
+═══════════════════════════════════════════════════════════════════
