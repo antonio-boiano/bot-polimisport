@@ -219,12 +219,22 @@ class WebScraper:
                 skill_el = el.select_one('.event-info-skill-level')
 
                 location = description_el.get_text(strip=True) if description_el else 'Unknown'
-                course_name = skill_el.get_text(strip=True) if skill_el else 'Unknown'
+
+                # Get course name from skill element, but it might be empty for Fit Center
+                course_name = skill_el.get_text(strip=True) if skill_el else ''
+
+                # For Fit Center bookings, skill element exists but is empty
+                if not course_name:
+                    # Try to extract from location/description (case-insensitive)
+                    if location and 'fit center' in location.lower():
+                        course_name = 'Fit Center'
+                    else:
+                        course_name = 'Unknown'
 
                 # Create unique booking ID
                 booking_id = f"{booking_date}_{time_start}_{course_name}".replace('/', '-').replace(' ', '_').replace(':', '')
 
-                if booking_date and time_start and course_name:
+                if booking_date and time_start:
                     bookings.append({
                         'booking_id': booking_id,
                         'course_name': course_name,
@@ -234,7 +244,7 @@ class WebScraper:
                     })
                     logger.info(f"Parsed booking {idx+1}: {course_name} on {booking_date} at {time_start}")
                 else:
-                    logger.warning(f"Incomplete booking data at index {idx}")
+                    logger.warning(f"Incomplete booking data at index {idx}: date={booking_date}, time={time_start}, course={course_name}")
 
             except Exception as e:
                 logger.error(f"Error parsing booking {idx}: {e}")
@@ -250,40 +260,102 @@ class WebScraper:
             List of current bookings
         """
         logger.info("Navigating to courses...")
-        await page.get_by_text('Booking Prenotazioni e noleggi View more').click()
-        await page.wait_for_timeout(3000)
+        await page.goto("https://ecomm.sportrick.com/sportpolimi/Booking")
+        await page.wait_for_timeout(2000)
 
         # Scrape bookings from this page
         bookings = await WebScraper.scrape_bookings(page)
 
         # Continue to courses
         await page.get_by_role('link', name='Nuova Prenotazione').click()
+        await page.wait_for_timeout(1000)
 
         try:
             await page.get_by_role('button', name='Chiudi questa informativa').click(timeout=2000)
         except:
             pass
 
-        await page.get_by_role('link', name='Giuriati - Corsi Platinum').click()
-        await page.wait_for_timeout(3000)
+        # Wait for the page to load before clicking
+        await page.wait_for_timeout(1000)
 
+        # Click once and wait for navigation/content to load
+        try:
+            await page.get_by_role('link', name='Giuriati - Corsi Platinum').click(timeout=1000)
+            await page.wait_for_timeout(500)
+        except:
+            await page.get_by_role('link', name='Giuriati - Corsi Platinum').click(timeout=1000)
+            await page.wait_for_timeout(500)
+
+        # Second click to actually enter the courses section
+        # await page.get_by_role('link', name='Giuriati - Corsi Platinum').click()
+
+        # Wait for calendar to load
+        try:
+            await page.wait_for_selector('#booking-calendar', state='visible', timeout=10000)
+            logger.info("Calendar loaded successfully")
+        except:
+            logger.warning("Calendar didn't load in expected time, continuing anyway")
+
+        await page.wait_for_timeout(2000)
+        logger.info("Navigation to courses complete")
         return bookings
 
     @staticmethod
     async def navigate_to_fit_center(page: Page):
         """Navigate to Giuriati Fit Center"""
         logger.info("Navigating to fit center...")
-        await page.get_by_role("link", name="Attività").click()
+        await page.goto("https://ecomm.sportrick.com/sportpolimi/Booking", wait_until='networkidle')
+        await page.wait_for_timeout(2000)
+
+        bookings = await WebScraper.scrape_bookings(page)
+
+        # Continue to fit center
+        await page.get_by_role('link', name='Nuova Prenotazione').click()
         await page.wait_for_timeout(1000)
-        await page.get_by_role("link", name="Giuriati - Fit Center").click()
-        await page.wait_for_timeout(3000)
+
+        try:
+            await page.get_by_role('button', name='Chiudi questa informativa').click(timeout=2000)
+        except:
+            pass
+
+        # Wait for the page to load and try to find Fit Center link
+        await page.wait_for_timeout(1000)
+
+        # Try different ways to find and click Fit Center
+        try:
+            # First try: exact match
+            await page.get_by_role('link', name='Giuriati - Fit Center').click(timeout=5000)
+        except:
+            try:
+                # Second try: partial text match
+                await page.locator('a:has-text("Fit Center")').first.click(timeout=5000)
+            except:
+                # Third try: direct URL navigation
+                logger.warning("Could not find Fit Center link, navigating directly")
+                await page.goto("https://ecomm.sportrick.com/sportpolimi/Booking/ChooseActivity?ActivityTypeId=FIT_CENTER")
+
+        # Wait for calendar to load
+        try:
+            await page.wait_for_selector('#booking-calendar', state='visible', timeout=10000)
+            logger.info("Fit Center calendar loaded successfully")
+        except:
+            logger.warning("Fit Center calendar didn't load in expected time, continuing anyway")
+
+        await page.wait_for_timeout(2000)
+
 
     @staticmethod
     async def move_date_forward(page: Page, days: int = 1):
         """Move calendar forward by N days"""
         for _ in range(days):
-            await page.click("a.btn-move-date[data-date-target='+1']")
-            await page.wait_for_timeout(200)
+            try:
+                # Wait for the button to be available and click it
+                await page.wait_for_selector("a.btn-move-date[data-date-target='+1']", timeout=10000)
+                await page.click("a.btn-move-date[data-date-target='+1']", timeout=5000)
+                await page.wait_for_timeout(200)
+            except Exception as e:
+                logger.error(f"Failed to move date forward: {e}")
+                raise
         await page.wait_for_timeout(3000)
 
     @staticmethod

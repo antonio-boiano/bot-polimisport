@@ -73,8 +73,8 @@ class SessionManager:
             logger.info("Starting login...")
 
             # Navigate to login page
-            await self.page.goto('https://www.sport.polimi.it/')
-            await self.page.get_by_role('link', name='Area Riservata').click()
+            await self.page.goto("https://ecomm.sportrick.com/sportpolimi/Account/Login?returnUrl=%\2Fsportpolimi%\2F")
+            # await self.page.get_by_role('link', name='Area Riservata').click()
             await self.page.get_by_role('button', name='Accedi al tuo account').click()
 
             await self.page.get_by_role('textbox', name='Codice Persona').fill(self._credentials['username'])

@@ -1,0 +1,223 @@
+"""
+Scheduler - APScheduler-based job scheduler for automated bookings
+Handles scheduled bookings execution and confirmation management
+"""
+
+import logging
+from datetime import datetime
+from typing import Callable, Optional
+from apscheduler.schedulers.asyncio import AsyncIOScheduler
+from apscheduler.triggers.cron import CronTrigger
+from apscheduler.triggers.interval import IntervalTrigger
+
+logger = logging.getLogger(__name__)
+
+
+class BookingScheduler:
+    """
+    Manages automated scheduling for:
+    - Executing scheduled bookings at midnight 2 days before
+    - Sending confirmation requests 5 hours before courses
+    - Auto-cancelling unconfirmed bookings 1 hour before courses
+    """
+
+    def __init__(self):
+        self.scheduler = AsyncIOScheduler()
+        self.is_running = False
+
+    def start(self):
+        """Start the scheduler"""
+        if not self.is_running:
+            self.scheduler.start()
+            self.is_running = True
+            logger.info("BookingScheduler started")
+
+    def shutdown(self):
+        """Shutdown the scheduler"""
+        if self.is_running:
+            self.scheduler.shutdown()
+            self.is_running = False
+            logger.info("BookingScheduler stopped")
+
+    # ==================== SCHEDULED BOOKING JOBS ====================
+
+    def add_scheduled_booking_checker(self, callback: Callable):
+        """
+        Add job to check and execute pending scheduled bookings
+        Runs daily at 1:00 AM
+
+        Args:
+            callback: Async function to call when checking bookings
+        """
+        self.scheduler.add_job(
+            callback,
+            trigger=CronTrigger(hour=1, minute=0),
+            id='scheduled_booking_checker',
+            name='Check and execute scheduled bookings',
+            replace_existing=True
+        )
+        logger.info("Added scheduled booking checker job (daily at 1:00 AM)")
+
+    def add_midnight_booking_executor(self, callback: Callable):
+        """
+        Add job to execute bookings at midnight (00:00)
+        Runs at 00:00 every day for bookings that need exact midnight execution
+
+        Args:
+            callback: Async function to call at midnight
+        """
+        self.scheduler.add_job(
+            callback,
+            trigger=CronTrigger(hour=0, minute=0),
+            id='midnight_booking_executor',
+            name='Execute midnight bookings',
+            replace_existing=True
+        )
+        logger.info("Added midnight booking executor job (daily at 00:00)")
+
+    # ==================== CONFIRMATION JOBS ====================
+
+    def add_confirmation_checker(self, callback: Callable):
+        """
+        Add job to check for confirmations that need to be sent
+        Runs every 10 minutes
+
+        Args:
+            callback: Async function to call when checking confirmations
+        """
+        self.scheduler.add_job(
+            callback,
+            trigger=IntervalTrigger(minutes=10),
+            id='confirmation_checker',
+            name='Check pending confirmations',
+            replace_existing=True
+        )
+        logger.info("Added confirmation checker job (every 10 minutes)")
+
+    def add_auto_cancel_checker(self, callback: Callable):
+        """
+        Add job to auto-cancel unconfirmed bookings
+        Runs every 10 minutes
+
+        Args:
+            callback: Async function to call when checking for cancellations
+        """
+        self.scheduler.add_job(
+            callback,
+            trigger=IntervalTrigger(minutes=10),
+            id='auto_cancel_checker',
+            name='Auto-cancel unconfirmed bookings',
+            replace_existing=True
+        )
+        logger.info("Added auto-cancel checker job (every 10 minutes)")
+
+    # ==================== PERIODIC BOOKING JOBS ====================
+
+    def add_periodic_booking_processor(self, callback: Callable):
+        """
+        Add job to process periodic bookings and create scheduled bookings
+        Runs daily at 6:00 AM
+
+        Args:
+            callback: Async function to call when processing periodic bookings
+        """
+        self.scheduler.add_job(
+            callback,
+            trigger=CronTrigger(hour=6, minute=0),
+            id='periodic_booking_processor',
+            name='Process periodic bookings',
+            replace_existing=True
+        )
+        logger.info("Added periodic booking processor job (daily at 6:00 AM)")
+
+    # ==================== JOB MANAGEMENT ====================
+
+    def remove_job(self, job_id: str):
+        """Remove a specific job"""
+        try:
+            self.scheduler.remove_job(job_id)
+            logger.info(f"Removed job: {job_id}")
+        except Exception as e:
+            logger.error(f"Failed to remove job {job_id}: {e}")
+
+    def list_jobs(self) -> list:
+        """List all scheduled jobs"""
+        jobs = self.scheduler.get_jobs()
+        return [
+            {
+                'id': job.id,
+                'name': job.name,
+                'next_run': job.next_run_time.strftime('%Y-%m-%d %H:%M:%S') if job.next_run_time else None
+            }
+            for job in jobs
+        ]
+
+    def pause_job(self, job_id: str):
+        """Pause a specific job"""
+        try:
+            self.scheduler.pause_job(job_id)
+            logger.info(f"Paused job: {job_id}")
+        except Exception as e:
+            logger.error(f"Failed to pause job {job_id}: {e}")
+
+    def resume_job(self, job_id: str):
+        """Resume a specific job"""
+        try:
+            self.scheduler.resume_job(job_id)
+            logger.info(f"Resumed job: {job_id}")
+        except Exception as e:
+            logger.error(f"Failed to resume job {job_id}: {e}")
+
+
+if __name__ == '__main__':
+    # Test scheduler
+    import asyncio
+
+    logging.basicConfig(
+        level=logging.INFO,
+        format='%(asctime)s - %(levelname)s - %(message)s'
+    )
+
+    print("=== Scheduler Test ===\n")
+
+    async def test_callback():
+        """Test callback function"""
+        print(f"[{datetime.now().strftime('%H:%M:%S')}] Test callback executed!")
+
+    async def test_scheduler():
+        """Test the scheduler"""
+        scheduler = BookingScheduler()
+
+        print("Starting scheduler...")
+        scheduler.start()
+
+        # Add test job
+        print("Adding test job (runs every 3 seconds)...")
+        scheduler.scheduler.add_job(
+            test_callback,
+            trigger=IntervalTrigger(seconds=3),
+            id='test_job',
+            name='Test Job'
+        )
+
+        # List jobs
+        print("\nScheduled jobs:")
+        for job in scheduler.list_jobs():
+            print(f"  - {job['name']} (ID: {job['id']})")
+            print(f"    Next run: {job['next_run']}")
+
+        print("\nScheduler running. Press Ctrl+C to stop...")
+        print("(Job will execute every 3 seconds)\n")
+
+        try:
+            # Keep running for 15 seconds
+            await asyncio.sleep(15)
+        except KeyboardInterrupt:
+            print("\nInterrupted by user")
+
+        print("\nStopping scheduler...")
+        scheduler.shutdown()
+
+        print("✅ Scheduler test completed!")
+
+    asyncio.run(test_scheduler())
