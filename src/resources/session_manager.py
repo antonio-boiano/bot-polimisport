@@ -84,7 +84,7 @@ class SessionManager:
             await self.page.goto(
                 "https://ecomm.sportrick.com/sportpolimi/Account/Login?returnUrl=%2Fsportpolimi%2F",
                 wait_until="domcontentloaded",  # Don't wait for all resources
-                timeout=2000  # Increase timeout to 60s
+                timeout=60000  # Increase timeout to 60s
             )
             # await self.page.get_by_role('link', name='Area Riservata').click()
             await self.page.get_by_role('button', name='Accedi al tuo account').click()
