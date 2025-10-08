@@ -49,11 +49,11 @@ class PolimisportBot:
         # Initialize handlers immediately with db
         self.course_handler = CourseHandler(self.db, None)
         self.booking_handler = BookingHandler(self.db, None)
-        self.booking_service = BookingService(self.db)
+        self.booking_service = BookingService(self.db, self.config)
         self.booking_executor = None  # Will be initialized with telegram app
 
         # Initialize scheduler
-        self.scheduler = BookingScheduler()
+        self.scheduler = BookingScheduler(self.config)
 
         # Will be initialized when needed
         self.session = None
@@ -679,12 +679,11 @@ class PolimisportBot:
             periodic_id = self.booking_service.create_periodic_booking(
                 user_id=self.authorized_user,
                 course=course,
-                requires_confirmation=requires_confirmation,
-                confirmation_hours_before=5,
-                cancel_hours_before=1
+                requires_confirmation=requires_confirmation
             )
 
-            conf_text = "con conferma (5h prima)" if requires_confirmation else "automatica (nessuna conferma)"
+            conf_hours = self.booking_service.default_confirmation_hours_before
+            conf_text = f"con conferma ({conf_hours}h prima)" if requires_confirmation else "automatica (nessuna conferma)"
 
             text = (
                 f"✅ *Prenotazione ricorrente creata!*\n\n"
@@ -1025,12 +1024,12 @@ END:VCALENDAR"""
         # Start scheduler
         self.scheduler.start()
 
-        # Add scheduled booking executor (every 5 minutes + midnight)
+        # Add scheduled booking executor (runs at midnight to execute bookings)
         async def execute_bookings():
             """Execute pending scheduled bookings"""
             try:
                 # Ensure session for executor
-                if not self.booking_executor.session_manager:
+                if not self.booking_executor.session_manager or not self.booking_executor.session_manager.page:
                     self.booking_executor.session_manager = SessionManager(
                         self.config.get('config_path', 'config.json')
                     )
@@ -1042,7 +1041,7 @@ END:VCALENDAR"""
             except Exception as e:
                 logger.error(f"Scheduler execute_bookings error: {e}")
 
-        self.scheduler.add_scheduled_booking_checker(execute_bookings)
+        # Only use midnight executor - the 1AM checker is redundant
         self.scheduler.add_midnight_booking_executor(execute_bookings)
 
         # Add confirmation checker

@@ -111,8 +111,9 @@ class BookingExecutor:
             f"{booking['course_name']} on {booking['target_date']}"
         )
 
-        # Create booking handler if not exists
-        if not self.booking_handler:
+        # Create booking handler if not exists or if session changed
+        # Always recreate to ensure we have the latest session
+        if not self.booking_handler or self.booking_handler.session != self.session_manager:
             self.booking_handler = BookingHandler(self.db, self.session_manager)
 
         # Execute the booking

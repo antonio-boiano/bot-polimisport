@@ -27,8 +27,13 @@ class BookingService:
     - Periodic: Recurring bookings with optional confirmation
     """
 
-    def __init__(self, db: Database):
+    def __init__(self, db: Database, config: dict = None):
         self.db = db
+
+        # Load timing configuration with defaults
+        scheduling = config.get('scheduling', {}) if config else {}
+        self.default_confirmation_hours_before = scheduling.get('confirmation_hours_before', 24)
+        self.default_cancel_hours_before = scheduling.get('cancel_hours_before', 2)
 
     # ==================== COURSE DATE HELPERS ====================
 
@@ -195,8 +200,8 @@ class BookingService:
         user_id: int,
         course: Dict,
         requires_confirmation: bool = False,
-        confirmation_hours_before: int = 5,
-        cancel_hours_before: int = 1
+        confirmation_hours_before: int = None,
+        cancel_hours_before: int = None
     ) -> int:
         """
         Create a periodic (recurring) booking
@@ -205,12 +210,17 @@ class BookingService:
             user_id: User ID
             course: Course dictionary
             requires_confirmation: Whether to require confirmation before booking
-            confirmation_hours_before: Hours before course to send confirmation (default 5)
-            cancel_hours_before: Hours before course to auto-cancel if not confirmed (default 1)
+            confirmation_hours_before: Hours before course to send confirmation (default from config)
+            cancel_hours_before: Hours before course to auto-cancel if not confirmed (default from config)
 
         Returns:
             Periodic booking ID
         """
+        # Use config defaults if not specified
+        if confirmation_hours_before is None:
+            confirmation_hours_before = self.default_confirmation_hours_before
+        if cancel_hours_before is None:
+            cancel_hours_before = self.default_cancel_hours_before
         booking_data = {
             'user_id': user_id,
             'course_id': course.get('id'),

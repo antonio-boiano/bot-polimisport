@@ -291,7 +291,7 @@ class Database:
             cursor = conn.cursor()
             cursor.execute('''
                 SELECT * FROM scheduled_bookings
-                WHERE status = 'pending' AND execution_time <= datetime('now')
+                WHERE status = 'pending' AND execution_time <= datetime('now', 'localtime')
                 ORDER BY execution_time
             ''')
             return [dict(row) for row in cursor.fetchall()]
@@ -333,8 +333,8 @@ class Database:
                 booking['time_end'],
                 1 if booking.get('is_fit_center') else 0,
                 1 if booking.get('requires_confirmation') else 0,
-                booking.get('confirmation_hours_before', 5),
-                booking.get('cancel_hours_before', 1)
+                booking.get('confirmation_hours_before', 24),
+                booking.get('cancel_hours_before', 2)
             ))
             return cursor.lastrowid
 
@@ -440,8 +440,8 @@ class Database:
             cursor.execute('''
                 SELECT * FROM pending_confirmations
                 WHERE status = 'pending' AND (
-                    (confirmation_message_id IS NULL AND confirmation_deadline <= datetime('now'))
-                    OR cancel_deadline <= datetime('now')
+                    (confirmation_message_id IS NULL AND confirmation_deadline <= datetime('now', 'localtime'))
+                    OR cancel_deadline <= datetime('now', 'localtime')
                 )
                 ORDER BY confirmation_deadline
             ''')

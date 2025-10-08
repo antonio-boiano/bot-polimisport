@@ -21,9 +21,16 @@ class BookingScheduler:
     - Auto-cancelling unconfirmed bookings 1 hour before courses
     """
 
-    def __init__(self):
+    def __init__(self, config: dict = None):
         self.scheduler = AsyncIOScheduler()
         self.is_running = False
+
+        # Load timing configuration with defaults
+        scheduling = config.get('scheduling', {}) if config else {}
+        self.booking_executor_hour = scheduling.get('booking_executor_hour', 0)
+        self.booking_executor_minute = scheduling.get('booking_executor_minute', 30)
+        self.periodic_processor_hour = scheduling.get('periodic_processor_hour', 0)
+        self.periodic_processor_minute = scheduling.get('periodic_processor_minute', 0)
 
     def start(self):
         """Start the scheduler"""
@@ -41,39 +48,22 @@ class BookingScheduler:
 
     # ==================== SCHEDULED BOOKING JOBS ====================
 
-    def add_scheduled_booking_checker(self, callback: Callable):
-        """
-        Add job to check and execute pending scheduled bookings
-        Runs daily at 1:00 AM
-
-        Args:
-            callback: Async function to call when checking bookings
-        """
-        self.scheduler.add_job(
-            callback,
-            trigger=CronTrigger(hour=1, minute=0),
-            id='scheduled_booking_checker',
-            name='Check and execute scheduled bookings',
-            replace_existing=True
-        )
-        logger.info("Added scheduled booking checker job (daily at 1:00 AM)")
-
     def add_midnight_booking_executor(self, callback: Callable):
         """
-        Add job to execute bookings at midnight (00:00)
-        Runs at 00:00 every day for bookings that need exact midnight execution
+        Add job to execute pending scheduled bookings
+        Runs at configured time (default: midnight) to execute bookings 2 days before courses
 
         Args:
-            callback: Async function to call at midnight
+            callback: Async function to call when executing bookings
         """
         self.scheduler.add_job(
             callback,
-            trigger=CronTrigger(hour=0, minute=0),
-            id='midnight_booking_executor',
-            name='Execute midnight bookings',
+            trigger=CronTrigger(hour=self.booking_executor_hour, minute=self.booking_executor_minute),
+            id='booking_executor',
+            name='Execute scheduled bookings',
             replace_existing=True
         )
-        logger.info("Added midnight booking executor job (daily at 00:00)")
+        logger.info(f"Added booking executor job (daily at {self.booking_executor_hour:02d}:{self.booking_executor_minute:02d})")
 
     # ==================== CONFIRMATION JOBS ====================
 
@@ -116,19 +106,19 @@ class BookingScheduler:
     def add_periodic_booking_processor(self, callback: Callable):
         """
         Add job to process periodic bookings and create scheduled bookings
-        Runs daily at 6:00 AM
+        Runs daily at configured time
 
         Args:
             callback: Async function to call when processing periodic bookings
         """
         self.scheduler.add_job(
             callback,
-            trigger=CronTrigger(hour=6, minute=0),
+            trigger=CronTrigger(hour=self.periodic_processor_hour, minute=self.periodic_processor_minute),
             id='periodic_booking_processor',
             name='Process periodic bookings',
             replace_existing=True
         )
-        logger.info("Added periodic booking processor job (daily at 6:00 AM)")
+        logger.info(f"Added periodic booking processor job (daily at {self.periodic_processor_hour:02d}:{self.periodic_processor_minute:02d})")
 
     # ==================== JOB MANAGEMENT ====================
 
